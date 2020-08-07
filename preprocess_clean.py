@@ -42,7 +42,7 @@ stemmer = SnowballStemmer('english')
 
 # load train and test data tables
 
-src = os.getcwd()
+src = os.getcwd()+"\\"
 train_path = os.path.join(src+'quora_train.csv')
 test_path = os.path.join(src+'quora_test.csv')
 df_train = pd.read_csv(train_path, delimiter = ',')
@@ -59,7 +59,7 @@ df_train = df_train.fillna('')
 df_test = df_test.fillna('')
 
 
-# load the corups 
+# load the corpus 
 nlp = spacy.load("en_core_web_md")
 
 
@@ -249,5 +249,5 @@ df_test.question1 = df_test.question1.map(lambda x: ' '.join(x.split()))
 df_test.question2 = df_test.question2.map(lambda x: ' '.join(x.split()))
 
 
-df_train.to_csv(src+'\\train_fullclean.csv', index = False)
-df_test.to_csv(src+'\\test_fullclean.csv', index = False)
+df_train.to_csv(src+'train_fullclean.csv', index = False)
+df_test.to_csv(src+'test_fullclean.csv', index = False)
