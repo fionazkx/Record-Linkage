@@ -22,7 +22,6 @@ import sematch
 import gensim
 import networkx as nx
 import matplotlib.pyplot as plt
-%matplotlib inline
 import pylab as pl
 from nltk import word_tokenize
 from nltk.corpus import wordnet as wn
@@ -57,20 +56,23 @@ from sklearn.metrics import roc_curve
 from sklearn.metrics import roc_auc_score 
 src = os.getcwd()+"\\"
 
-
+# load features
 features_train = pd.read_csv(src+'train_stat_feat.csv')
 features_test = pd.read_csv(src+'test_stat_feat.csv')
+# fill na with float number
 features_train = features_train.astype(np.float).fillna(0.0)
 features_test = features_test.astype(np.float).fillna(0.0)
 
 # logistic regression
 from sklearn.linear_model import LogisticRegression 
 import datetime
+# get train and test data
 x_train = features_train
 y_train = df_train.is_duplicate.fillna('')
 x_test = features_test.fillna('')
 y_test = df_test.is_duplicate.fillna('')
 
+# functions to plot the accuracy rates for cross validation sets
 def pyplot_performance(y,name):
     x = [int(i) for i in range(1,6)]
     pl.figure(1)
@@ -78,7 +80,21 @@ def pyplot_performance(y,name):
     pl.xlabel(u'times')
     pl.plot(x,y,label=name)
     pl.legend()
+# plot roc curve
+def pyplot_roc(y_true, y_scores,title):
+    auc_value = roc_auc_score(y_true, y_scores) 
+    fpr, tpr, thresholds = roc_curve(y_true, y_scores, pos_label=1.0)  
+    pl.figure(2) 
+    pl.plot(fpr, tpr, label=title+' (area = %0.4f)' % auc_value)  
+    pl.plot([0, 1], [0, 1])  
+    pl.xlim([0.0, 1.0])  
+    pl.ylim([0.0, 1.05])  
+    pl.xlabel('False Positive Rate')  
+    pl.ylabel('True Positive Rate')  
+    pl.title('ROC '+title)  
+    pl.legend(loc="lower right")  
     
+# implement logistic regression methods
 def log_reg(x_train,y_train,x_test,y_test):
     starttime = datetime.datetime.now()
     clf1 = LogisticRegression()
@@ -96,19 +112,8 @@ def log_reg(x_train,y_train,x_test,y_test):
     endtime = datetime.datetime.now()
     print ("runtime:"+str((endtime - starttime).seconds / 60))
 
-def pyplot_roc(y_true, y_scores,title):
-    auc_value = roc_auc_score(y_true, y_scores) 
-    fpr, tpr, thresholds = roc_curve(y_true, y_scores, pos_label=1.0)  
-    pl.figure(2) 
-    pl.plot(fpr, tpr, label=title+' (area = %0.4f)' % auc_value)  
-    pl.plot([0, 1], [0, 1])  
-    pl.xlim([0.0, 1.0])  
-    pl.ylim([0.0, 1.05])  
-    pl.xlabel('False Positive Rate')  
-    pl.ylabel('True Positive Rate')  
-    pl.title('ROC '+title)  
-    pl.legend(loc="lower right")  
-    
+  
+
 log_reg(x_train,y_train,x_test,y_test)
 
 
@@ -143,7 +148,7 @@ gradient_boosting(x_train,y_train,x_test,y_test)
 
 # lstm
 
-
+# load train and test data
 src = os.getcwd()+"\\"
 
 train_path = os.path.join(src+'df_train_stem.csv')
@@ -299,19 +304,6 @@ preds = np.argmax(preds,axis=1)
 
 preds = pd.DataFrame({"test_id": df_test["id"], "is_duplicate": df_test['is_duplicate'],"pred": preds})
 # plot the ROC curve
-def pyplot_roc(y_true, y_scores,title):
-    auc_value = roc_auc_score(y_true, y_scores) 
-    fpr, tpr, thresholds = roc_curve(y_true, y_scores, pos_label=1.0)  
-    pl.figure(2) 
-    pl.plot(fpr, tpr, label=title+' (area = %0.4f)' % auc_value)  
-    pl.plot([0, 1], [0, 1])  
-    pl.xlim([0.0, 1.0])  
-    pl.ylim([0.0, 1.05])  
-    pl.xlabel('False Positive Rate')  
-    pl.ylabel('True Positive Rate')  
-    pl.title('ROC '+title)  
-    pl.legend(loc="lower right")  
-    
 pyplot_roc(df_test.is_duplicate, preds, "LSTM")
 
 
