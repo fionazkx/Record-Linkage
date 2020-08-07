@@ -80,7 +80,7 @@ df_test_clean = df_test_le.fillna('')
 train_feat = pd.DataFrame()
 test_feat = pd.DataFrame()
 
-# feature: length of sentence, number of words
+# feature: length of sentence, number of words, length of characters, different of these features
 
 train_feat ['q1_len'] = df_train_orig.question1.map(lambda x: len(str(x)))
 train_feat ['q2_len'] = df_train_orig.question2.map(lambda x: len(str(x)))
@@ -226,9 +226,10 @@ test_feat['q2_dulp_num'] = df_test_orig.question2.map(lambda x : dulp_num[str(x)
 
     
 # distance features    
-# jaccad coefficient
+# jaccard coefficient
 
 def jaccard_similarity(s1, s2):
+    # convert to vectors
     cv = CountVectorizer(tokenizer=lambda x: x.split())
     vectors = cv.fit_transform([s1,s2]).toarray()
     ret = cv.get_feature_names()
@@ -236,14 +237,14 @@ def jaccard_similarity(s1, s2):
     denominator = np.sum(np.max(vectors, axis=0))
     return 1.0 * numerator / denominator
 
-
+# jaccard coefficient of train set
 tr_jacc_coef = list()
 for index, row in df_train.iterrows():
     jacc = jaccard_similarity(row.question1,row.question2)
     tr_jacc_coef.append(jacc)
     
 train_feat['jacc_coef']=tr_jacc_coef
-
+# jaccard coefficient of test set
 te_jacc_coef = list()
 for index, row in df_test.iterrows():
     jacc = jaccard_similarity(row.question1,row.question2)
@@ -369,9 +370,10 @@ test_feat['word2vec']=te_word2vec
 
 
 import networkx as nx
-import pandas as pd
+
 from itertools import combinations
 
+# load data
 src = os.getcwd()+"\\"
 
 train_path = os.path.join(src+'quora_train.csv')
@@ -384,16 +386,17 @@ df_test = df_test[['id',"qid1","qid2","question1","question2","is_duplicate"]]
 
 # acquire clique size 
 len_train = df_train.shape[0]
-
+# combine questions together
 df = pd.concat([df_train[['question1', 'question2']], df_test[['question1', 'question2']]], axis=0)
 
-
+# construct grapj with edges and nodes
 G = nx.Graph()
 edges = [tuple(x) for x in df[['question1', 'question2']].values]
 G.add_edges_from(edges)
 
 map_label = dict(((x[0],x[1]) for x in df[['question1', 'question2']].values))
 map_clique_size = {}
+# find cliques
 cliques = sorted(list(nx.find_cliques(G)), key=lambda x: len(x))
 for cli in cliques:
     for q1, q2 in combinations(cli, 2):
@@ -409,7 +412,7 @@ train_feat['clique_size'] = df[['clique_size']][:len_train]
 test_feat['clique_size']= df[['clique_size']][len_train:]
 
 
-# acquire pagerank 
+# acquire pagerank for trainin data
 qid_graph = {}
 df_train.apply(lambda x: qid_graph.setdefault(x["question1"], []).append(x["question2"]), axis = 1)
 df_train.apply(lambda x: qid_graph.setdefault(x["question2"], []).append(x["question1"]), axis = 1)
@@ -442,7 +445,7 @@ tr_df = df_train.apply(lambda x: pd.Series({
     }), axis = 1)
 train_feat['pagerank_1'], train_feat['pagerank_2']= tr_df.pagerank_q1*1e6, tr_df.pagerank_q2*1e6
 
-
+#acquiring pagerank for test data
 qid_graph = {}
 df_test.apply(lambda x: qid_graph.setdefault(x["question1"], []).append(x["question2"]), axis = 1)
 df_test.apply(lambda x: qid_graph.setdefault(x["question2"], []).append(x["question1"]), axis = 1)
@@ -483,7 +486,7 @@ test_feat.shared_words= test_feat.shared_words.map(lambda x: x.split('[')[1].spl
 train_feat.noun_shared= train_feat.noun_shared.map(lambda x: x.split('[')[1].split(']')[0])
 test_feat.noun_shared= test_feat.noun_shared.map(lambda x: x.split('[')[1].split(']')[0])
 
-
+# to csv files
 train_feat.to_csv(src+'train_stat_feat.csv',index = False)
 test_feat.to_csv(src+'test_stat_feat.csv', index = False)
 
