@@ -42,9 +42,9 @@ stemmer = SnowballStemmer('english')
 
 # load train and test data tables
 
-src = os.getcwd()
-train_path = os.path.join(src+'\\quora_train.csv')
-test_path = os.path.join(src+'\\quora_test.csv')
+src = os.getcwd()+"\\"
+train_path = os.path.join(src+'quora_train.csv')
+test_path = os.path.join(src+'quora_test.csv')
 df_train = pd.read_csv(train_path, delimiter = ',')
 df_test = pd.read_csv(test_path, delimiter = ',')
 
@@ -228,5 +228,5 @@ df_test.question2 = pd.DataFrame(q2)
 
 # output
 
-df_train.to_csv(src+'\\train_lemma.csv', index = False)
+df_train.to_csv(src+'train_lemma.csv', index = False)
 df_test.to_csv(src+'test_lemma.csv', index = False)
